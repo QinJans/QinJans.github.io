@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<!-- saved from url=(0119)file:///C:/Users/Jan/Desktop/%E8%AF%B7%E5%81%87%E6%B5%81%E7%A8%8B/%E7%A7%BB%E5%8A%A8%E7%AB%AF/view_files/signature.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>手写批注</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0, maximum-scale=1.0">
+	
+	<script src="./jquery.js.下载"></script>
+	<script src="./jSignature.js.下载"></script>
+	<link rel="stylesheet" href="./weui.css">
+	<link rel="stylesheet" href="./signature.css">
+	
+	<script>
+	var $sigdiv;
+	var $sigdiv2;
+	var $sigdiv3;
+	var $sigdiv4;
+	var currentWidth = "4";
+	var currentColor = "1";
+	var currentScale = "1";
+	var currentData = new Array();
+	var currentData2 = new Array();
+	var currentData3 = new Array();
+	var currentData4 = new Array();
+	var index = 0;
+	var imgs=[];
+	var base64=[];
+	var heightdiv;
+	var cwidth=0;
+	var cheight=0;
+	var hendwidth=0;
+	var hendheight=0;
+	
+	var sumnumber = 0;
+	
+	var newnumber1 = 0;
+	var newnumber2 = 0;
+	var newnumber3 = 0;
+	
+	$(document).ready(function(){
+		
+		$(".color"+currentColor).addClass("color"+currentColor+"_hover");
+		$(".width"+currentWidth).addClass("width"+currentWidth+"_hover");
+		// 增加颜色选项是否显示的选项  
+		var colorshow = $("#colorShow").val();
+		if(colorshow == 1){ //不显示
+			$("#colordiv").hide();
+			$sigdiv = $("#signature").jSignature({color:"Black",lineWidth:4,
+				width:$("#page-center").width(),height:$("#page-center").height()});
+			$sigdiv2 = $("#signature2").jSignature({color:"Black",lineWidth:4,
+				width:$("#page-center2").width(),height:$("#page-center2").height()});
+			$sigdiv3 = $("#signature3").jSignature({color:"Black",lineWidth:4,
+				width:$("#page-center3").width(),height:$("#page-center3").height()});
+			$sigdiv4 = $("#signature4").jSignature({color:"Black",lineWidth:4,
+				width:$("#page-center4").width(),height:$("#page-center4").height()});
+		}else{
+			$sigdiv = $("#signature").jSignature({color:getColor(),lineWidth:currentWidth,
+				width:$("#page-center").width(),height:$("#page-center").height()});
+			$sigdiv2 = $("#signature2").jSignature({color:getColor(),lineWidth:currentWidth,
+				width:$("#page-center2").width(),height:$("#page-center2").height()});
+			$sigdiv3 = $("#signature3").jSignature({color:getColor(),lineWidth:currentWidth,
+				width:$("#page-center3").width(),height:$("#page-center3").height()});
+			$sigdiv4 = $("#signature4").jSignature({color:getColor(),lineWidth:currentWidth,
+				width:$("#page-center4").width(),height:$("#page-center4").height()});
+		}
+		
+		
+	
+		$("#rownumber").text("1");
+		$("#whnum").val("1");
+		$("#handnumber").text("1");
+		$("#hdnum").val("1");
+		$("#typeid").val("0");
+		
+		
+		
+		$("#submit").click(function(){
+			submit();
+		});
+		$(".header-right").click(function(){
+			submit();
+		});
+		$("#back").click(function(){
+			parent.onSignatureBack();
+		});
+		$("#dialogSure").click(function(){
+			$("#dialog2").hide();
+		});
+		$(".btn").click(function(){
+			var nu = $("#whnum").val();
+			var hdnum = $("#hdnum").val();
+			var type = $("#typeid").val();
+			if($(this).hasClass("hand")){
+				$("#handdiv").attr("class","btn whiteboard");
+				$("#handrasurediv").attr("class","btn lineerasure");
+				$("#handrasure").text("擦除");
+				$("#hand").text("白板");
+				$("#typeid").val("0");
+				$("#whdiv").show();
+				$("#hddiv").hide();
+				$("#page-hand").hide();
+				$("#page-pa").show();
+				$("#scale").show();
+				$("#reset").show();
+			}else if($(this).hasClass("whiteboard")){
+				$("#handdiv").attr("class","btn hand");
+				$("#handrasurediv").attr("class","btn rasure");
+				$("#handrasure").text("换行");
+				$("#hand").text("手写");
+				$("#typeid").val("1");
+				$("#whdiv").hide();
+				$("#hddiv").show();
+				$("#page-hand").show();
+				$("#page-pa").hide();
+				$("#scale").hide();
+				
+				
+				var $content = $('.hand-content1');
+				var $content2 = $('.hand-content2');
+				var $content3 = $('.hand-content3');
+				var height = $content.height();
+				heightdiv = Math.floor(height / 7);
+				$("#widthnum").val($content.width() / 7);
+
+				
+				
+				for (var i = 0; i < 7; i ++) {
+					$content.append('<div class="hand-line" id="1_'+i+'" style="height:' + heightdiv + 'px; border-bottom: 1px solid pink">');
+					$content.append('</div>');
+				}
+				for (var i = 0; i < 7; i ++) {
+					$content2.append('<div class="hand-line" id="2_'+i+'" style="height:' + heightdiv + 'px; border-bottom: 1px solid pink">');
+					$content2.append('</div>');
+				}
+				for (var i = 0; i < 7; i ++) {
+					$content3.append('<div class="hand-line" id="3_'+i+'" style="height:' + heightdiv + 'px; border-bottom: 1px solid pink">');
+					$content3.append('</div>');
+				}
+				
+			}else if($(this).hasClass("linewidth")){
+					
+				if($(this).hasClass("linewidth_hover")){
+					$(this).removeClass("linewidth_hover");
+					$("#linewidth").hide();
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","70px");
+				}else{
+					$(this).addClass("linewidth_hover");
+					$("#linewidth").show();
+					$(".linecolor").removeClass("linecolor_hover");
+					$(".linescale").removeClass("linescale_hover");
+					$("#linecolor").hide();
+					$("#linescale").hide();
+					$(".lineerasure").removeClass("lineerasure_hover");
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","110px");
+					
+				}
+			}else if($(this).hasClass("linecolor")){
+				
+				
+				if($(this).hasClass("linecolor_hover")){
+					$(this).removeClass("linecolor_hover");
+					$("#linecolor").hide();
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","70px");
+				}else{
+					$(this).addClass("linecolor_hover");
+					$("#linecolor").show();
+					$(".linewidth").removeClass("linewidth_hover");
+					$(".linescale").removeClass("linescale_hover");
+					$("#linewidth").hide();
+					$("#linescale").hide();
+					$(".lineerasure").removeClass("lineerasure_hover");
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","110px");
+					if(type == 0){
+						if(nu == 3){
+							$sigdiv3.jSignature("updateSetting","color",getColor(),true);
+						}else if(nu == 2){
+							$sigdiv2.jSignature("updateSetting","color",getColor(),true);
+						}else{
+							$sigdiv.jSignature("updateSetting","color",getColor(),true);
+						}
+					}else{
+						$sigdiv4.jSignature("updateSetting","color",getColor(),true);
+					}
+					
+					
+				}
+			}else if($(this).hasClass("linescale")){
+				if($(this).hasClass("linescale_hover")){
+					$(this).removeClass("linescale_hover");
+					$("#linescale").hide();
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","70px");
+				}else{
+					$(this).addClass("linescale_hover");
+					$("#linescale").show();
+					$(".linewidth").removeClass("linewidth_hover");
+					$(".linecolor").removeClass("linecolor_hover");
+					$("#linewidth").hide();
+					$("#linecolor").hide();
+					$(".lineerasure").removeClass("lineerasure_hover");
+					//修改白板或者手写样式
+					$(".page_center").css("bottom","110px");
+					if(type == 0){
+						if(nu == 3){
+							$sigdiv3.jSignature("updateSetting","color",getColor(),true);
+						}else if(nu == 2){
+							$sigdiv2.jSignature("updateSetting","color",getColor(),true);
+						}else{
+							$sigdiv.jSignature("updateSetting","color",getColor(),true);
+						}
+					}else{
+						$sigdiv4.jSignature("updateSetting","color",getColor(),true);
+					}
+				}
+			}else if($(this).hasClass("lineerasure")){
+				if($(this).hasClass("lineerasure_hover")){
+					$(this).removeClass("lineerasure_hover");
+					if(type == 0){
+						if(nu == 3){
+							$sigdiv3.jSignature("updateSetting","color",getColor(),true);
+						}else if(nu == 2){
+							$sigdiv2.jSignature("updateSetting","color",getColor(),true);
+						}else{
+							$sigdiv.jSignature("updateSetting","color",getColor(),true);
+						}
+					}else{
+						$sigdiv4.jSignature("updateSetting","color",getColor(),true);
+					}
+					
+					
+				}else{
+					$(this).addClass("lineerasure_hover");
+					if(type == 0){
+						if(nu == 3){
+							$sigdiv3.jSignature("updateSetting","color","#fff",true);
+						}else if(nu == 2){
+							$sigdiv2.jSignature("updateSetting","color","#fff",true);
+						}else{
+							$sigdiv.jSignature("updateSetting","color","#fff",true);
+						}
+					}else{
+						$sigdiv4.jSignature("updateSetting","color","#fff",true);
+					}
+					
+				}
+			}else if($(this).hasClass("rasure")){  //换行
+				if(hdnum == 1){
+					var num = $("#rowsnumber1").val();
+					num = parseInt(num) + parseInt(1);
+					$("#rowsnumber1").val(num);
+					$("#imgnum1").val("0");
+					
+					if($("#upclick1").val() != 1){
+						var page1hand = $("#page1hand").val();
+						$("#page1hand").val(page1hand+sumnumber+",");
+					}else{
+						$("#hhre1").val("1");
+					}
+				}else if(hdnum == 2){
+					var num = $("#rowsnumber2").val();
+					num = parseInt(num) + parseInt(1);
+					$("#rowsnumber2").val(num);
+					$("#imgnum2").val("0");
+					
+					if($("#upclick2").val() != 1){
+						var page2hand = $("#page2hand").val();
+						$("#page2hand").val(page2hand+sumnumber+",");
+					}else{
+						$("#hhre2").val("1");
+					}
+				}else{
+					var num = $("#rowsnumber3").val();
+					num = parseInt(num) + parseInt(1);
+					$("#rowsnumber3").val(num);
+					$("#imgnum3").val("0");
+					
+					var page3hand = $("#page3hand").val();
+					$("#page3hand").val(page3hand+sumnumber+",");
+				}
+				
+			}else if($(this).hasClass("linecancel")){
+				if(index==0||index==1){
+					if(type == 0){	
+						if(nu == 3){
+							$sigdiv3.jSignature("reset");
+						}else if(nu == 2){
+							$sigdiv2.jSignature("reset");
+						}else{
+							$sigdiv.jSignature("reset");
+						}
+					}else{
+						$("#"+hdnum+"_"+$("#rowsnumber"+hdnum).val()+" img:last").remove();
+						 var imgnum = $("#imgnum1").val()
+						 if(imgnum > 0){
+							 $("#imgnum"+hdnum).val(parseInt(imgnum) - parseInt(1));
+						 }
+					}
+					index = 0;
+				}else{
+					//walert($sigdiv.jSignature("updateSetting","data",currentData[index-1],true));
+					if(type ==0){
+						if(nu == 3){
+							$sigdiv3.jSignature("reset");
+							$sigdiv3.jSignature('setData',currentData3[index-3]);
+						}else if(nu == 2){
+							$sigdiv2.jSignature("reset");
+							$sigdiv2.jSignature('setData',currentData2[index-3]);
+						}else{
+							$sigdiv.jSignature("reset");
+							$sigdiv.jSignature('setData',currentData[index-3]);
+						}
+					}else{
+						$("#"+hdnum+"_"+$("#rowsnumber"+hdnum).val()+" img:last").remove();
+						 var imgnum = $("#imgnum1").val()
+						 if(imgnum > 0){
+							 $("#imgnum"+hdnum).val(parseInt(imgnum) - parseInt(1));
+						 }
+					}
+					
+					index = index-2;
+				}
+				sumnumber--;
+				//$sigdiv.jSignature("undo");
+			}else if($(this).hasClass("lineclear")){
+				if(type == 0){
+					if(nu == 3){
+						$sigdiv3.jSignature("reset");
+					}else if(nu == 2){
+						$sigdiv2.jSignature("reset");
+					}else{
+						$sigdiv.jSignature("reset");
+					}
+				}else{
+					$("#page-hand1 div img").remove();
+					$("#page-hand2 div img").remove();
+					$("#page-hand3 div img").remove();
+				}
+				/* parent.onSignatureClear(); */
+				submit();
+				index = 0;
+			}else if($(this).hasClass("linereset")){
+				if(type == 0){
+					if(nu == 3){
+						$sigdiv3.jSignature("reset");
+					}else if(nu == 2){
+						$sigdiv2.jSignature("reset");
+					}else{
+						$sigdiv.jSignature("reset");
+					}
+				}else{
+					 if(hdnum == 1){
+						 $("#page-hand1 div img").remove();
+					 }else if(hdnum == 2){
+						 $("#page-hand2 div img").remove();
+					 }else{
+						 $("#page-hand3 div img").remove();
+					 }
+					 //对当前页面所有内容情况
+				}
+				index = 0;
+				
+			}
+		});
+		$(".width").click(function(){
+			var nu = $("#whnum").val();
+			var td = $("#typeid").val();
+			var type = $(this).attr("type");
+			//修改白板或者手写样式
+			$(".page_center").css("bottom","70px");
+			if(currentWidth==type){
+				return;
+			}
+			$(".width"+currentWidth).removeClass("width"+currentWidth+"_hover");
+			currentWidth = type;
+			$(".width"+currentWidth).addClass("width"+currentWidth+"_hover");
+			$(".linewidth").removeClass("linewidth_hover");
+			$("#linewidth").hide();
+			if(td == 0){
+				if(nu == 3){
+					$sigdiv3.jSignature("updateSetting","lineWidth",currentWidth,true);
+				}else if(nu == 2){
+					$sigdiv2.jSignature("updateSetting","lineWidth",currentWidth,true);
+				}else{
+					$sigdiv.jSignature("updateSetting","lineWidth",currentWidth,true);
+				}
+			}else{
+				$sigdiv4.jSignature("updateSetting","lineWidth",currentWidth,true);
+			}
+			
+			
+		});
+		$(".scale").click(function(){
+			var nu = $("#whnum").val();
+			var td = $("#typeid").val();
+			$(".linescale").removeClass("linescale_hover");
+			$("#linescale").hide();
+			//修改白板或者手写样式
+			$(".page_center").css("bottom","70px");
+			var oldData;
+			if(td == 0){
+				if(nu == 3){
+					oldData= $sigdiv3.jSignature('getData', 'image', {
+					    'scaleX':$(this).attr("type"),
+					    'lock': true
+					});
+					$sigdiv3.jSignature("scaleData",oldData);
+				}else if(nu == 2){
+					oldData = $sigdiv2.jSignature('getData', 'image', {
+					    'scaleX':$(this).attr("type"),
+					    'lock': true
+					});
+					$sigdiv2.jSignature("scaleData",oldData);
+				}else{
+					oldData = $sigdiv.jSignature('getData', 'image', {
+					    'scaleX':$(this).attr("type"),
+					    'lock': true
+					});
+					$sigdiv.jSignature("scaleData",oldData);
+				}
+			}else{
+				oldData = $sigdiv4.jSignature('getData', 'image', {
+				    'scaleX':$(this).attr("type"),
+				    'lock': true
+				});
+				$sigdiv4.jSignature("scaleData",oldData);
+			}
+			
+			
+		});
+		$(".color").click(function(){
+			var nu = $("#whnum").val();
+			var td = $("#typeid").val();
+			var type = $(this).attr("type");
+			//修改白板或者手写样式
+			$(".page_center").css("bottom","70px");
+			if(currentColor==type){
+				return;
+			}
+			$(".color"+currentColor).removeClass("color"+currentColor+"_hover");
+			currentColor = type;
+			$(".color"+currentColor).addClass("color"+currentColor+"_hover");
+			$(".linecolor").removeClass("linecolor_hover");
+			$("#linecolor").hide();
+			if(td == 0){
+				if(nu == 3){
+					$sigdiv3.jSignature("updateSetting","color",getColor(),true);
+				}else if(nu == 2){
+					$sigdiv2.jSignature("updateSetting","color",getColor(),true);
+				}else{
+					$sigdiv.jSignature("updateSetting","color",getColor(),true);
+				}
+			}else{
+				$sigdiv4.jSignature("updateSetting","color",getColor(),true);
+			}
+			
+			
+		});
+		
+		$("#signature").bind('change', function(e){
+			currentData[index] = $sigdiv.jSignature('getData');
+			index++;
+		})
+		$("#signature2").bind('change', function(e){
+			currentData2[index] = $sigdiv2.jSignature('getData');
+			index++;
+		})
+		$("#signature3").bind('change', function(e){
+			currentData3[index] = $sigdiv3.jSignature('getData');
+			index++;
+		})
+		
+		var time;
+		$("#signature4").bind('touchstart touchmove', function(e){
+			clearTimeout(time);
+		})
+		/* $("#signature4").bind('touchend', function(e){ */
+			
+		
+		$("#signature4").bind('change', function(e){
+			
+			
+			var widthnum = $("#widthnum").val();
+			
+				if(parseInt($sigdiv4.jSignature("getData", "native").length) > 0){
+					currentData4[index] = $sigdiv4.jSignature('getData');
+					index++;
+			        time = setTimeout(function() {
+					
+						var rownum;
+						var imgnum;
+						var hdnum = $("#hdnum").val();
+						var data = $sigdiv4.jSignature('getData', 'image', {
+						    'scaleX':currentScale,
+						    'trim': true
+						});
+						var tf = istf(data[0].toDataURL());
+						if(tf == 1){
+							sumnumber++;
+							if(hdnum == 1){
+								rownum = $("#rowsnumber1").val();
+								imgnum = $("#imgnum1").val();
+								if(imgnum <= 6){
+									$("#imgnum1").val(parseInt(imgnum) + parseInt(1));
+								}else{
+									$("#rowsnumber1").val(parseInt(rownum) + parseInt(1))
+									rownum = $("#rowsnumber1").val();
+									var inumber;
+									if(rownum == 1){
+										$("#page1hand").val(imgnum+",");
+									}else if(rownum == 2){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}else if(rownum == 3){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}else if(rownum == 4){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}else if(rownum == 5){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}else if(rownum == 6){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}else if(rownum == 7){
+										inumber = $("#page1hand").val();
+										$("#page1hand").val(inumber + (sumnumber - 1) +",");
+									}
+									$("#imgnum1").val("1");
+									if(rownum == 7 && imgnum == 7){
+										//本页写完了 调到下页写
+										$("#page-hand1").hide();
+										$("#page-hand3").hide();
+										$("#page-hand2").show();
+										$("#hdnum").val("2");
+										hdnum  = $("#hdnum").val();
+										rownum = $("#rowsnumber2").val();
+										$("#handnumber").text("2");
+										$("#tyvue1").val("1")
+									}
+								}
+								var pnumber1;
+								if($("#upclick1").val() == 1){
+									pnumber1 = parseInt($("#pnumber1").val()) + parseInt(1);
+									$("#pnumber1").val(pnumber1);
+									newnumber1++;
+								}else{
+									$("#pnumber1").val(sumnumber);
+								}
+								//如果第一页增加字数 并且 第二页 或者第三页已经生成了分页标识
+								var page2hand = $("#page2hand").val();
+								if(page2hand !=""){
+									page2hand = page2hand.substring(0,page2hand.length-1)
+									page2hand = page2hand.split(",");
+									for(var i=0;i<page2hand.length;i++){
+										if(i == 0){
+											$("#page2hand").val(parseInt(page2hand[i])+parseInt(1)+",");
+										}else{
+											$("#page2hand").val($("#page2hand").val()+(parseInt(page2hand[i])+parseInt(1))+",");
+										}
+									}
+								}
+								var page3hand = $("#page3hand").val();
+								if(page3hand !=""){
+									page3hand = page3hand.substring(0,page3hand.length-1)
+									page3hand = page3hand.split(",");
+									for(var i=0;i<page3hand.length;i++){
+										if(i == 0){
+											$("#page3hand").val(parseInt(page3hand[i])+parseInt(1)+",");
+										}else{
+											$("#page3hand").val($("#page3hand").val()+(parseInt(page3hand[i])+parseInt(1))+",");
+										}
+									}
+								}
+								var pnumber1 = $("#pnumber1").val()
+								var page1hand = $("#page1hand").val();
+								if($("#upclick1").val() !=0){
+									//判断当前页是否已经生成 分页标识
+									var vue;
+									if(page1hand != ""){
+										page1hand = page1hand.substring(0,page1hand.length-1)
+										page1hand = page1hand.split(",");
+										for(var i=0;i<page1hand.length;i++){
+											if(i == parseInt(page1hand.length)-parseInt(1)){
+												if(typeof(vue) != "undefined"){
+													$("#page1hand").val(vue+pnumber1+",");
+												}else{
+													$("#page1hand").val(pnumber1+",");
+												}
+												
+											}else{
+												vue = page1hand[i]+",";
+											}
+										}
+									}
+								}
+								//如果返回追加先点击了换行
+								if($("#hhre1").val() !=0){
+									$("#hhre1").val("0");
+									$("#page1hand").val(page1hand + "," + pnumber1 + ",");
+								}
+							}else if(hdnum == 2){
+								rownum = $("#rowsnumber2").val();
+								if($("#tyvue1").val() == 1){
+									imgnum = 1;
+									$("#tyvue1").val("0")
+								}else{
+									imgnum = $("#imgnum2").val();
+								}
+								if(imgnum <= 6){
+									$("#imgnum2").val(parseInt(imgnum) + parseInt(1));
+								}else{
+									$("#rowsnumber2").val(parseInt(rownum) + parseInt(1))
+									rownum = $("#rowsnumber2").val();
+									$("#imgnum2").val("1");
+									var inumber;
+									if(rownum == 1){
+										$("#page2hand").val((sumnumber-1)+",");
+									}else if(rownum == 2){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 3){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 4){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 5){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 6){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 7){
+										inumber = $("#page1hand").val();
+										$("#page2hand").val($("#page2hand").val() + (sumnumber - 1) +",");
+									}
+									if(rownum == 7 && imgnum == 7){
+										//本页写完了 调到下页写
+										$("#page-hand1").hide();
+										$("#page-hand2").hide();
+										$("#page-hand3").show();
+										$("#hdnum").val("3");
+										hdnum  = $("#hdnum").val();
+										rownum = $("#rowsnumber3").val();
+										$("#handnumber").text("3");
+										$("#tyvue2").val("1")
+									}
+								}
+								var pnumber2;
+								if($("#upclick2").val() == 1){
+									pnumber2 = parseInt($("#pnumber2").val()) + parseInt(1);
+									$("#pnumber2").val(pnumber2);
+									newnumber1++;
+								}else{
+									$("#pnumber2").val(sumnumber);
+								}
+								//如果第二页增加字数 并且 第三页已经生成了分页标识
+								var page3hand = $("#page3hand").val();
+								if(page3hand !=""){
+									page3hand = page3hand.substring(0,page3hand.length-1)
+									page3hand = page3hand.split(",");
+									for(var i=0;i<page3hand.length;i++){
+										if(i == 0){
+											$("#page3hand").val(parseInt(page3hand[i])+parseInt(1)+",");
+										}else{
+											$("#page3hand").val($("#page3hand").val()+(parseInt(page3hand[i])+parseInt(1))+",");
+										}
+									}
+								}
+								var pnumber2 = $("#pnumber2").val()
+								var page2hand = $("#page2hand").val();
+								if($("#upclick2").val() !=0){
+									//判断当前页是否已经生成 分页标识
+									var vue;
+									if(page2hand != ""){
+										page2hand = page2hand.substring(0,page2hand.length-1)
+										page2hand = page2hand.split(",");
+										for(var i=0;i<page2hand.length;i++){
+											if(i == parseInt(page2hand.length)-parseInt(1)){
+												if(typeof(vue) != "undefined"){
+													$("#page2hand").val(vue+pnumber2+",");	
+												}else{
+													$("#page2hand").val(pnumber2+",");
+												}
+											}else{
+												vue = page2hand[i]+",";
+											}
+										}
+									}
+								}
+								//如果返回追加先点击了换行
+								if($("#hhre2").val() !=0){
+									$("#hhre2").val("0");
+									$("#page2hand").val(page2hand + "," + pnumber2 + ",");
+								}
+							}else{
+								rownum = $("#rowsnumber3").val();
+								if($("#tyvue2").val() == 1){
+									imgnum = 1;
+									$("#tyvue2").val("0")
+								}else{
+									imgnum = $("#imgnum3").val();
+								}
+								if(imgnum <= 6){
+									$("#imgnum3").val(parseInt(imgnum) + parseInt(1));
+								}else{
+									$("#rowsnumber3").val(parseInt(rownum) + parseInt(1))
+									rownum = $("#rowsnumber3").val();
+									$("#imgnum3").val("1");
+									var inumber;
+									if(rownum == 1){
+										$("#page3hand").val((sumnumber-1)+",");
+									}else if(rownum == 2){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 3){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 4){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 5){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 6){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}else if(rownum == 7){
+										inumber = $("#page1hand").val();
+										$("#page3hand").val($("#page3hand").val() + (sumnumber - 1) +",");
+									}
+									if(rownum == 7 && imgnum == 7){
+										//本页写完了 调到下页写
+										alert("已达到最大输入数");
+									}
+								}
+							}
+							/* if(data[1] <= 50){
+								$("#"+hdnum+"_"+rownum+"").append("<img src='"+$sigdiv4.jSignature('getData')+"' style='margin:3px;' width='"+widthnum+"px' height='"+heightdiv+"px'/>");
+							}else{  */
+								$("#"+hdnum+"_"+rownum+"").append("<img src='"+data[0].toDataURL()+"' style='margin:3px;' width='35px' height='46px'/>");
+							/* } */
+							hendwidth += data[1];
+							hendheight += data[2];
+							$sigdiv4.jSignature("reset");
+							
+							
+						}
+					
+					}, 1000);
+				}
+			
+		})
+
+	});
+		
+	
+	function getColor(){
+		var color = "red";
+		if(currentColor == 2){
+			color = "#ffc100";
+		}else if(currentColor == 3){
+			color = "#feff00";
+		}else if(currentColor == 4){
+			color = "#11a744";
+		}else if(currentColor == 5){
+			color = "#0763a6";
+		}else if(currentColor == 6){
+			color = "#000002";
+		}
+		return color;
+	}
+	
+	function submit(){
+		var type = $("#typeid").val();
+		cwidth=0;
+		cheight=0;
+		if(type == 0){
+			//var data = $sigdiv.jSignature('getData').split(",")[1];
+			var data = $sigdiv.jSignature('getData', 'image', {
+			    'scaleX':currentScale,
+			    'trim': true
+			});
+			var data2 = $sigdiv2.jSignature('getData', 'image', {
+			    'scaleX':currentScale,
+			    'trim': true
+			});
+			var data3 = $sigdiv3.jSignature('getData', 'image', {
+			    'scaleX':currentScale,
+			    'trim': true
+			});
+			
+			imgs=[];
+			var ifHasContent = false;
+			if(data[0].toDataURL().indexOf("QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC")<0
+					&&data[0].toDataURL().indexOf("UAAEPpnR6AAAAAElFTkSuQmCC")<0){
+				cwidth+=data[1];
+				cheight+=data[2];
+				imgs.push(data[0].toDataURL());
+				ifHasContent = true;
+			}
+			if(data2[0].toDataURL().indexOf("QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC")<0
+					&&data2[0].toDataURL().indexOf("UAAEPpnR6AAAAAElFTkSuQmCC")<0){
+				cwidth+=data2[1];
+				cheight+=data2[2];
+				imgs.push(data2[0].toDataURL());
+				ifHasContent = true;
+			}
+			if(data3[0].toDataURL().indexOf("QIBARsBgZaoSlACBB1YxAJfjJb2jAAAAAElFTkSuQmCC")<0
+					&&data3[0].toDataURL().indexOf("UAAEPpnR6AAAAAElFTkSuQmCC")<0){
+				cwidth+=data3[1];
+				cheight+=data3[2];
+				imgs.push(data3[0].toDataURL());
+				ifHasContent = true;
+			}
+			if(ifHasContent){
+				base64=[];
+				/* imgs=[data[0].toDataURL(),data2[0].toDataURL(),data3[0].toDataURL()],base64=[]; */
+				draw(function(){ 
+					parent.onSignatureOk(base64[0]);
+				});
+			}else{
+				parent.onSignatureClear();
+			}
+		}else{
+			base64=[];
+			imgs=[];
+			var imglist = $(".hand-line > img");
+			if(imglist.length>0){
+				for(var i=0;i<imglist.length;i++){
+					imgs.push(imglist[i].src)
+				}
+				draw(function(){ 
+					parent.onSignatureOk(base64[0]);
+				})
+			}else{
+				parent.onSignatureClear();
+			}
+		}
+	}
+
+	
+	function draw(fn){
+		var type = $("#typeid").val();
+		var c=document.createElement('canvas');
+		ctx=c.getContext('2d');
+	
+		var len=imgs.length;
+		if(type == 0){
+			c.width=cwidth + 800;
+			c.height=cheight + 1200;
+		}else{
+			c.width=hendwidth + 800;
+			c.height=hendheight + 1200;
+			
+		}
+		ctx.rect(0,0,c.width,c.height);
+		ctx.fillStyle='#ffffff';
+		ctx.fill();
+		var hei = 50;
+		var wid = 50;
+		var imgn = 0;
+		
+		function drawing(n){
+			if(n<len){
+				var img=new Image;
+				//img.crossOrigin = 'Anonymous'; //解决跨域
+				img.src=imgs[n];
+				img.onload=function(){
+					if(type == 0){
+						ctx.drawImage(img,wid,hei,img.width,img.height);
+						hei+=img.height + 50;
+					}else{
+						var isshow = 0;
+						var hidnumb;
+						var page1hand = $("#page1hand").val();
+						var page2hand = $("#page2hand").val();
+						var page3hand = $("#page3hand").val();
+						if(page1hand !="" && page2hand !="" || page3hand !=""){
+							hidnumb = page1hand;
+						}else{
+							hidnumb = page1hand.substring(0,page1hand.length-1);
+						}
+						if(page2hand !="" && page3hand !=""){
+							hidnumb = hidnumb + page2hand;
+						}else{
+							hidnumb = hidnumb + page2hand.substring(0,page2hand.length-1);
+						}
+						if(page3hand != ""){
+							hidnumb = hidnumb + page3hand.substring(0,page3hand.length-1);
+						}
+						hidnumb = hidnumb.split(",");
+						for(var k = 0 ;k<hidnumb.length;k++){
+							//如果当前的换行的标识等于 当前要拼接的图片 说明需要换行显示
+							if(imgn == hidnumb[k]){
+								imgn+=1;
+								wid = 50;
+								hei += img.height+50;
+								ctx.drawImage(img,wid,hei,img.width,img.height);
+								wid = wid + img.width+50;
+								isshow = 1;
+								break;
+							}
+						}
+						if(isshow == 0){
+							imgn+=1;
+							ctx.drawImage(img,wid,hei,img.width,img.height);
+							wid = wid + img.width+50;
+						}
+						
+					}
+					drawing(n+1);//递归
+				}
+			}else{
+				
+				//获取拼接后的图片对象
+				var signimg = new Image();
+				signimg.src = c.toDataURL();
+				signimg.onload = function(){
+					//获取色差值
+					var imgData = ctx.getImageData(0, 0, c.width, c.height).data;
+					var lOffset = c.width, rOffset = 0,tOffset = c.height, bOffset = 0
+					for (var i = 0; i < c.width; i++) {
+					    for (var j = 0; j < c.height; j++) {
+					        var pos = (i + c.width * j) * 4
+					        if (imgData[pos] != 255 || imgData[pos + 1] != 255 || imgData[pos + 2] != 255 || imgData[pos + 3] != 255) {
+					            bOffset = Math.max(j, bOffset) // 找到有色彩的最底部的纵坐标
+					            rOffset = Math.max(i, rOffset) // 找到有色彩的最右端
+					            tOffset = Math.min(j, tOffset) // 找到有色彩的最上端
+					            lOffset = Math.min(i, lOffset) // 找到有色彩的最左端
+					        }
+					    }
+					}
+					// 由于循环是从0开始的,而我们认为的行列是从1开始的
+					lOffset++
+					rOffset++
+					tOffset++
+					bOffset++
+					
+					//重新绘制画板
+					var canvas2 = document.createElement('canvas');
+					canvas2.width = rOffset-lOffset+1;
+					canvas2.height = bOffset-tOffset+1;
+					var ctx2 = canvas2.getContext('2d');
+					
+					ctx2.drawImage(signimg,lOffset-1,tOffset-1,canvas2.width,canvas2.height,0,0,canvas2.width,canvas2.height);
+					
+					//保存生成作品图片
+					base64.push(canvas2.toDataURL("image/png",1.0));
+					fn();
+				}
+			}
+		}
+		drawing(0);
+	}
+	
+	function walert(msg){
+		$("#alertDiv").html(msg);
+		$("#dialog2").show();
+	}
+	function wshowloading(msg){
+		$("#loadingp").html(msg);
+		$("#loadingToast").show();
+	}
+	function whideloading(){
+		$("#loadingToast").hide();
+	}
+	
+	function istf(url){
+		var canvas = document.createElement('canvas'),
+		ctx = canvas.getContext('2d');
+		
+		if(canvas.toDataURL() != url){
+			return "1";
+		}else{
+			return "0";
+		}
+	}
+	
+	
+	/*===============================================*/
+	function up(){
+		var type = $("#typeid").val();
+		if(type == 0){
+			var rownumber = $("#whnum").val();
+			rownumber = parseInt(rownumber) + parseInt(1);
+			if(rownumber == 3){
+				$("#page-center").hide();
+				$("#page-center2").hide();
+				$("#page-center3").show();
+				$("#rownumber").text(rownumber);
+				$("#whnum").val(rownumber);
+			}else if(rownumber == 2) {
+				$("#page-center").hide();
+				$("#page-center3").hide();
+				$("#page-center2").show();
+				$("#rownumber").text(rownumber);
+				$("#whnum").val(rownumber);
+			}else {
+				alert("已经是最后一页啦！");
+			}
+		}else{
+			var hdnumber = $("#hdnum").val();
+			hdnumber = parseInt(hdnumber) + parseInt(1);
+			if(hdnumber == 3){
+				$("#page-hand1").hide();
+				$("#page-hand2").hide();
+				$("#page-hand3").show();
+				$("#handnumber").text(hdnumber);
+				$("#hdnum").val(hdnumber);
+				if($("#isclick2").val() == 0){
+					var page2hand = $("#page2hand").val();
+					$("#page2hand").val(page2hand + sumnumber + ",");
+					$("#isclick2").val("1");
+				}
+			}else if(hdnumber == 2) {
+				$("#page-hand1").hide();
+				$("#page-hand3").hide();
+				$("#page-hand2").show();
+				$("#handnumber").text(hdnumber);
+				$("#hdnum").val(hdnumber);
+				
+				var page1hand = $("#page1hand").val();
+				if($("#isclick1").val() == 0){
+					$("#page1hand").val(page1hand + sumnumber + ",");
+					$("#isclick1").val("1");
+				}
+			}else {
+				alert("已经是最后一页啦！");
+			}
+		}
+	}
+	function down(){
+		var type = $("#typeid").val();
+		if(type == 0){
+			var rownumber = $("#whnum").val();
+			rownumber = parseInt(rownumber) - parseInt(1);
+			if(rownumber == 1){
+				$("#page-center3").hide();
+				$("#page-center2").hide();
+				$("#page-center").show();
+				$("#rownumber").text(rownumber);
+				$("#whnum").val(rownumber);
+			}else if(rownumber == 2) {
+				$("#page-center").hide();
+				$("#page-center3").hide();
+				$("#page-center2").show();
+				$("#rownumber").text(rownumber);
+				$("#whnum").val(rownumber);
+			}else {
+				alert("已经是第一页啦！");
+			}
+		}else{
+			var hdnumber = $("#hdnum").val();
+			hdnumber = parseInt(hdnumber) - parseInt(1);
+			if(hdnumber == 1){
+				$("#page-hand3").hide();
+				$("#page-hand2").hide();
+				$("#page-hand1").show();
+				$("#handnumber").text(hdnumber);
+				$("#hdnum").val(hdnumber);
+				
+				$("#upclick1").val("1");
+			}else if(hdnumber == 2) {
+				$("#page-hand1").hide();
+				$("#page-hand3").hide();
+				$("#page-hand2").show();
+				$("#handnumber").text(hdnumber);
+				$("#hdnum").val(hdnumber);
+				
+				$("#upclick2").val("1");
+			}else {
+				alert("已经是第一页啦！");
+			}
+		}
+	}
+	$(function () {
+		$("#hddiv").hide();
+	});
+	
+	</script>
+</head>
+<body>
+
+<input type="hidden" id="colorShow" name="colorShow" value="0">
+
+<div id="page">
+	<div id="page-title">
+		<div id="nav-header">
+			<div class="header-left" id="back"></div>
+			<div id="page-pa">
+				<a href="javascript:down();"><img src="./left_arrow-w.png" width="25px" height="25px"></a>
+				<span id="rownumber" value="">1</span><span>/3</span>
+				<a href="javascript:up();"><img src="./right_arrow-w.png" width="25px" height="25px"></a>
+			</div>
+			<div id="page-hand" style="display: none">
+				<a href="javascript:down();"><img src="./left_arrow-w.png" width="25px" height="25px"></a>
+				<span id="handnumber" value="">1</span><span>/3</span>
+				<a href="javascript:up();"><img src="./right_arrow-w.png" width="25px" height="25px"></a>
+			</div>
+			<div class="header-right"></div>
+		</div>
+	</div>
+	
+	
+	<!-- 白板部分 -->
+	<div id="whdiv">
+		<div id="page-center" class="page_center">
+			<div id="signature"><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div></div>
+		</div> 
+		<div id="page-center2" class="page_center" style="display: none;">
+			<div id="signature2"><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div></div>
+		</div>
+		<div id="page-center3" class="page_center" style="display: none;">
+			<div id="signature3"><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div></div>
+		</div>
+	</div>
+	<!-- 手写部分 -->
+	<div id="hddiv" style="display: none;">
+		<div id="page-center4" class="page_center" style="background-color:rgba(255, 255, 255, 0.5);z-index:9999">
+			<div id="signature4"><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="1459" style="margin: 0px; padding: 0px; border: none; height: 638px; width: 1459px;" height="638"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1em !important;margin-bottom:1em !important;"></div><canvas class="jSignature" width="96" style="margin: 0px; padding: 0px; border: none; height: 1px; width: 96px;" height="1"></canvas><div style="padding:0 !important;margin:0 !important;width: 100% !important; height: 0 !important;margin-top:-1.5em !important;margin-bottom:1.5em !important;"></div></div>
+		</div>
+		<div id="page-hand1" class="page_center hand-content1">
+		</div> 
+		<div id="page-hand2" class="page_center hand-content2" style="display: none">
+		
+		</div>
+		<div id="page-hand3" class="page_center hand-content3" style="display: none">
+		
+		</div> 
+	</div>
+	<div class="hideNav" id="linewidth">
+		<table class="table">
+			<tbody><tr>
+				<td><div class="text">笔触</div></td>
+				<td><div class="width width1" type="1"></div></td>
+				<td><div class="width width2" type="2"></div></td>
+				<td><div class="width width3" type="3"></div></td>
+				<td><div class="width width4 width4_hover" type="4"></div></td>
+				<td><div class="width width5" type="5"></div></td>
+				<td><div class="width width6" type="6"></div></td>
+			</tr>
+		</tbody></table>
+	</div>
+	<div class="hideNav" id="linecolor">
+		<table class="table">
+			<tbody><tr>
+				<td><div class="text">颜色</div></td>
+				<td><div class="color color1 color1_hover" type="1"></div></td>
+				<td><div class="color color2" type="2"></div></td>
+				<td><div class="color color3" type="3"></div></td>
+				<td><div class="color color4" type="4"></div></td>
+				<td><div class="color color5" type="5"></div></td>
+				<td><div class="color color6" type="6"></div></td>
+			</tr>
+		</tbody></table>
+	</div>
+	<div class="hideNav" id="linescale">
+		<table class="table">
+			<tbody><tr>
+				<td><div class="text">缩放</div></td>
+				<td><div class="text scale" type="0.2">20%</div></td>
+				<td><div class="text scale" type="0.4">40%</div></td>
+				<td><div class="text scale" type="0.5">50%</div></td>
+				<td><div class="text scale" type="0.6">60%</div></td>
+				<td><div class="text scale" type="0.75">75%</div></td>
+				<td><div class="text scale" type="0.8">80%</div></td>
+			</tr>
+		</tbody></table>
+	</div>
+	<div id="result-footer">
+		<table class="table">
+			<tbody><tr>
+				<td>
+					<div class="btn whiteboard" id="handdiv">
+						<span id="hand">白板</span>
+					</div>
+				</td>
+				
+				<td><div class="btn linewidth">笔触</div></td>
+				<td id="colordiv"><div class="btn linecolor">颜色</div></td>
+				<!-- <td id="scale"><div class="btn linescale">缩放</div></td> -->
+				<td><div class="btn lineerasure" id="handrasurediv"><span id="handrasure">擦除</span></div></td>
+				<td><div class="btn linecancel">撤销</div></td>
+				<td id="reset"><div class="btn linereset">清空</div></td>
+				<!-- <td><div class="btn lineclear">清空</div></td> -->
+			</tr>
+		</tbody></table>
+	</div>
+</div>
+<div id="loadingToast" class="weui_loading_toast" style="display:none;">
+    <div class="weui_mask_transparent"></div>
+    <div class="weui_toast">
+        <div class="weui_loading">
+            <div class="weui_loading_leaf weui_loading_leaf_0"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_1"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_2"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_3"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_4"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_5"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_6"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_7"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_8"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_9"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_10"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_11"></div>
+        </div>
+        <p class="weui_toast_content" id="loadingp"></p>
+    </div>
+</div>
+<div class="weui_dialog_alert" id="dialog2" style="display: none;">
+    <div class="weui_mask"></div>
+    <div class="weui_dialog">
+        <div class="weui_dialog_hd"><strong class="weui_dialog_title">温馨提示</strong></div>
+        <div class="weui_dialog_bd" id="alertDiv"></div>
+        <div class="weui_dialog_ft">
+            <a href="javascript:;" id="dialogSure" class="weui_btn_dialog primary">确定</a>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="whnum" value="1">
+<input type="hidden" id="hdnum" value="1">
+<input type="hidden" id="typeid" value="0">
+<input type="hidden" id="rowsnumber1" value="0">
+<input type="hidden" id="rowsnumber2" value="0">
+<input type="hidden" id="rowsnumber3" value="0">
+<input type="hidden" id="widthnum" value="0">
+<input type="hidden" id="imgnum1" value="0">
+<input type="hidden" id="imgnum2" value="0">
+<input type="hidden" id="imgnum3" value="0">
+<input type="hidden" id="tyvue1" value="0">
+<input type="hidden" id="tyvue2" value="0">
+<input type="hidden" id="page1hand">
+<input type="hidden" id="page2hand">
+<input type="hidden" id="page3hand">
+<input type="hidden" id="isclick1" value="0">
+<input type="hidden" id="isclick2" value="0">
+<input type="hidden" id="pnumber1" value="0">
+<input type="hidden" id="pnumber2" value="0">
+<input type="hidden" id="pnumber3" value="0">
+<input type="hidden" id="upclick1" value="0">
+<input type="hidden" id="upclick2" value="0">
+<input type="hidden" id="hhre1" value="0">
+<input type="hidden" id="hhre2" value="0">
+
+	
+
+</body></html>

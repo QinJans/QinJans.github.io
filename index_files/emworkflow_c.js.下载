@@ -1,0 +1,620 @@
+(function($) {
+	var jdyzjJSAPI = {
+		// 判断是否运行于云之家App中 
+		isYzjApp : function() {
+			return navigator.userAgent.match(/Qing\/.*;(iOS|iPhone|Android).*/) ? true : false;
+		},
+		
+		/* 
+		 * 判断是否运行于云之家桌面端
+		 * 
+		 * @return {object} cloudhub 返回是否桌面端、当前桌面端userAgent版本及是否支持JS-API
+		 * cloudhub = {isCloudHub: true | false, hasJS_APIt: true | false, version: "0.0.1"}
+		 */
+		getCloudHub : function() {
+			var ua = window.navigator.userAgent;
+			var reg = /cloudhub 10220\/([^;]+)/;
+			var cloudhub = {
+				isCloudHub : false,
+				hasJS_APIt : false,
+				version : "",
+				isUsable : false
+			};
+
+			var match = reg.exec(ua), version;
+
+			if (match) {
+				version = match[1];
+				cloudhub.isCloudHub = true, cloudhub.version = version;
+
+				if (version.replace(/\./g, "") > 1) {
+					cloudhub.hasJS_APIt = true;
+				}
+			}
+
+			cloudhub.isUsable = cloudhub.isCloudHub && cloudhub.hasJS_APIt;
+
+			return cloudhub;
+		}
+	};
+	
+	var gpsToGcj = {
+		pi : 3.14159265358979324,
+		a : 6378245.0,
+		ee : 0.00669342162296594323,
+		
+		geoTransform : function(wgLat, wgLng) {
+			var transCoords = {};
+			if (this.regionOfChina(wgLat, wgLng)) {
+				transCoords["latitude"] = wgLat;
+				transCoords["longitude"] = wgLng;
+				return transCoords;
+			}
+			var dLat = this.transformLat(wgLng - 105.0, wgLat - 35.0);
+			var dLng = this.transformLng(wgLng - 105.0, wgLat - 35.0);
+			var radLat = wgLat / 180.0 * this.pi;
+			var magic = Math.sin(radLat);
+			magic = 1 - this.ee * magic * magic;
+			var sqrtMagic = Math.sqrt(magic);
+			dLat = (dLat * 180.0) / ((this.a * (1 - this.ee)) / (magic * sqrtMagic) * this.pi);
+			dLng = (dLng * 180.0) / (this.a / sqrtMagic * Math.cos(radLat) * this.pi);
+			transCoords["latitude"] = wgLat + dLat;
+			transCoords["longitude"] = wgLng + dLng;
+			return transCoords;
+		},
+		
+		regionOfChina : function(lat, lng) {
+			if (lng < 72.004 || lng > 137.8347) {
+				return true;
+			} else if (lat < 0.8293 || lat > 55.8271) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		
+		transformLat : function(x, y) {
+			var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+			ret += (20.0 * Math.sin(6.0 * x * this.pi) + 20.0 * Math.sin(2.0 * x * this.pi)) * 2.0 / 3.0;
+			ret += (20.0 * Math.sin(y * this.pi) + 40.0 * Math.sin(y / 3.0 * this.pi)) * 2.0 / 3.0;
+			ret += (160.0 * Math.sin(y / 12.0 * this.pi) + 320 * Math.sin(y * this.pi / 30.0)) * 2.0 / 3.0;
+			return ret;
+		},
+		
+		transformLng : function(x, y) {
+			var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+			ret += (20.0 * Math.sin(6.0 * x * this.pi) + 20.0 * Math.sin(2.0 * x * this.pi)) * 2.0 / 3.0;
+			ret += (20.0 * Math.sin(x * this.pi) + 40.0 * Math.sin(x / 3.0 * this.pi)) * 2.0 / 3.0;
+			ret += (150.0 * Math.sin(x / 12.0 * this.pi) + 300.0 * Math.sin(x / 30.0 * this.pi)) * 2.0 / 3.0;
+			return ret;
+		} 
+	};
+	
+	$.jsapicomp = {
+		
+		// 获取“转发”按钮点击状态及自定义分享内容接口
+		onMenuShareAppMessage : function(title, desc, link, imgUrl) {
+			wx.ready(function() {
+				wx.onMenuShareAppMessage({
+					title : title, // 分享标题
+					desc : desc, // 分享描述
+					link : link, // 分享链接
+					imgUrl : imgUrl, // 分享图标
+					success : function() {
+						// 用户确认分享后执行的回调函数
+					},
+					cancel : function() {
+						// 用户取消分享后执行的回调函数
+					}
+				});
+			});
+		},
+
+		// 获取“微信”按钮点击状态及自定义分享内容接口
+		onMenuShareWechat : function(title, desc, link, imgUrl) {
+			wx.ready(function() {
+				wx.onMenuShareWechat({
+					title : title, // 分享标题
+					desc : desc, // 分享描述
+					link : link, // 分享链接
+					imgUrl : imgUrl, // 分享图标
+					success : function() {
+						// 用户确认分享后执行的回调函数
+					},
+					cancel : function() {
+						// 用户取消分享后执行的回调函数
+					}
+				});
+			});
+		},
+		// 获取“分享到朋友圈”按钮点击状态及自定义分享内容接口
+		onMenuShareTimeline : function(title, link, imgUrl) {
+			wx.ready(function() {
+				wx.onMenuShareTimeline({
+					title : title, // 分享标题
+					link : link, // 分享链接
+					imgUrl : imgUrl, // 分享图标
+					success : function() {
+						// 用户确认分享后执行的回调函数
+					},
+					cancel : function() {
+						// 用户取消分享后执行的回调函数
+					}
+				});
+			});
+		},
+
+		// 自定义转发到会话
+		shareAppMessage : function(title, desc, link, imgUrl) {
+			wx.ready(function() {
+				wx.invoke("shareAppMessage", {
+					title : title, // 分享标题
+					desc : desc, // 分享描述
+					link : link, // 分享链接
+					imgUrl : imgUrl
+				// 分享封面
+				}, function(res) {
+					if (res.err_msg == "shareAppMessage:ok") {
+
+					}
+				});
+			});
+		},
+
+		// 自定义转发到微信
+		shareWechatMessage : function(title, desc, link, imgUrl) {
+			wx.ready(function() {
+				wx.invoke("shareWechatMessage", {
+					title : title, // 分享标题
+					desc : desc, // 分享描述
+					link : link, // 分享链接
+					imgUrl : imgUrl
+				// 分享封面
+				}, function(res) {
+					if (res.err_msg == "shareWechatMessage:ok") {
+
+					}
+				});
+			});
+		},
+		
+		// 调用所有share功能
+		shareWechatAll : function(title, desc, link, imgUrl) {
+			$.jsapicomp.onMenuShareAppMessage(title, desc, link, imgUrl);
+			$.jsapicomp.onMenuShareWechat(title, desc, link, imgUrl);
+			$.jsapicomp.onMenuShareTimeline(title, link, imgUrl);
+			$.jsapicomp.shareAppMessage(title, desc, link, imgUrl);
+			$.jsapicomp.shareWechatMessage(title, desc, link, imgUrl);
+		},
+		
+		/**
+		 * 扫一扫
+		 */
+		scan : function(options, callback) {
+			var _options = $.extend({}, {
+			}, ((options && typeof options !== "function") ? options : {}));
+			
+			if (typeof wx != "undefined") {
+				wx.ready(function() {
+					wx.scanQRCode({
+						desc : "扫一扫",
+						needResult : 1,
+						scanType : [ "qrCode", "barCode" ],
+						success : function(res) {
+							callback(res.resultStr);
+						},
+						fail : function(res) {
+							alert("调用JS-SDK接口失败，异常信息：" + res.errMsg + "，请联系管理员确认云桥域名已备案！");
+						}
+					});
+				});
+			} else if (typeof dd != "undefined") {
+				dd.error(function(error) {
+					alert("钉钉JS-SDK接口验证失败，异常信息：" + JSON.stringify(error) + "，请联系管理员确认云桥域名已备案！");
+				});
+				dd.ready(function() {
+					dd.biz.util.scan({
+						type : "qrCode",
+						onSuccess : function(data) {
+							callback(data.text);
+						},
+						onFail : function(err) {
+							alert("调用JS-SDK接口失败，异常信息：" + JSON.stringify(err) + "，请联系管理员确认云桥域名已备案！");
+						}
+					});
+				});
+			} else if (jdyzjJSAPI.isYzjApp() || jdyzjJSAPI.getCloudHub().isUsable) {
+				XuntongJSBridge.call("scanQRCode", {
+					"needResult" : 1
+				}, function(result) {
+					var success = String(result.success);
+					if (success == "true") {
+						callback(result.data["qrcode_str"]);
+					} else if (success == "false") {
+						alert(result.error);
+					} else {
+						alert("调用接口异常，异常信息：" + JSON.stringify(result));
+					}
+				});
+			} else {
+				alert("您的客户端未支持扫码接口，请联系管理员！");
+			}
+		},
+		
+		/**
+		 * 拍照或从手机相册中选图
+		 */
+		chooseImage : function(options, callback) {
+			var _options = $.extend({}, {
+				contextPath : "", // 上下文路径
+				count: 9, // 选择照片的最大数量，默认9
+				sizeType : 0, // 指定是原图还是压缩图，0：二者都有（默认），1：原图，2：压缩图
+				sourceType : 0 // 指定来源是相册还是相机，0：二者都有（默认），1：相册，2：相机
+			}, ((options && typeof options !== "function") ? options : {}));
+			
+			// 拍照或从手机相册中选图
+			if (typeof wx != "undefined") {
+				var sizeType = ["original", "compressed"];
+				if (_options.sizeType == 1)
+					sizeType = ["original"];
+				else if (_options.sizeType == 2)
+					sizeType = ["compressed"];
+				
+				var sourceType = ["album", "camera"];
+				if (_options.sourceType == 1)
+					sourceType = ["album"];
+				else if (_options.sourceType == 2)
+					sourceType = ["camera"];
+				
+				wx.chooseImage({
+					count: _options.count,
+					sizeType : sizeType,
+					sourceType : sourceType,
+					success : function(res) {
+						var wxLocalIds = res.localIds,
+						result = { fileIds : "", fileUrls : "", fileNames : "" };
+						
+						// 上传图片
+						_uploadImage(wxLocalIds, _options, result, function() {
+							if (callback && typeof callback === "function")
+								callback(result);
+							else if (options && typeof options === "function")
+								options(result);
+						});
+					},
+					fail : function(res) {
+						if (res.errMsg.indexOf("permission denied") != -1) {
+							alert('调用JS-SDK接口失败，请联系管理员确认云桥域名已备案，并通过微信校验！');
+						} else {
+							alert('调用JS-SDK接口失败，异常信息：' + res.errMsg + '，请联系管理员！');
+						}
+					}
+				});
+			} else if (typeof dd != "undefined") {
+				if (_options.sourceType == 2) {
+					try{
+					dd.biz.util.uploadImageFromCamera({
+						compression : _options.sizeType == 2, // 是否压缩，默认不压缩
+						onSuccess : function(result) {
+							_uploadImageDD(_options, result, callback);
+						},
+						onFail : function(err) {
+							alert('调用JS-SDK接口失败，异常信息：' + JSON.stringify(err) + '，请联系管理员确认云桥域名已备案！');
+						}
+					})}catch(e){alert(e)}
+				} else {
+					dd.biz.util.uploadImage({
+						compression: _options.sizeType == 2, // 是否压缩，默认不压缩
+						multiple: true, // 是否多选，默认false
+						max: _options.count,
+						onSuccess : function(result) {
+							_uploadImageDD(_options, result, callback);
+						},
+						onFail : function(err) {
+							alert('调用JS-SDK接口失败，异常信息：' + JSON.stringify(err) + '，请联系管理员确认云桥域名已备案！');
+						}
+					});
+				}
+			}
+			
+			/**
+			 * 微信上传图片
+			 */
+			function _uploadImage(wxLocalIds, options, result, callback) {
+				var wxLocalId = wxLocalIds.shift();
+				
+				wx.uploadImage({
+					localId: wxLocalId, // 需要上传的图片的本地ID，由chooseImage接口获得
+					isShowProgressTips: 1, // 默认为1，显示进度提示
+					success: function (res) {
+						var mediaId = res.serverId; // 返回图片的服务器端ID
+						
+						$.ajax({
+							url : options.contextPath + "/wxjsapi/saveMedia",
+							type : "post",
+							data : { "mediaId" : mediaId },
+							dataType : "json",
+							async : true,
+							success : function(data) {
+								if (data.status != "error") {
+									result.fileIds += (result.fileIds == "" ? "" : ",") + data.id;
+									result.fileUrls += (result.fileUrls == "" ? "" : ",") + options.contextPath + "/file/" + data.id;
+									result.fileNames += (result.fileNames == "" ? "" : ",") + data.name;
+								}
+								
+								if (wxLocalIds.length > 0)
+									_uploadImage(wxLocalIds, options, result, callback);
+								else if (callback && typeof callback === "function")
+									callback();
+							},
+							error : function() {
+								if (wxLocalIds.length > 0)
+									_uploadImage(wxLocalIds, options, result, callback);
+								else if (callback && typeof callback === "function")
+									callback();
+							}
+						});
+					},
+					fail : function(res) {
+						alert('调用JS-SDK接口失败，异常信息：' + res.errMsg + '，请联系管理员确认云桥域名已备案！');
+					}
+				});
+			}
+			
+			/**
+			 * 钉钉上传图片
+			 */
+			function _uploadImageDD(options, result, callback) {
+				var rest = { fileIds : "", fileUrls : "" };
+				
+				for (var i in result) {
+					$.ajax({
+						url : options.contextPath + "/wxjsapi/saveDDFile",
+						type : "post",
+						data : { "ddimgurl" : result[i] },
+						dataType : "json",
+						async : false,
+						success : function(data) {
+							if (data.status != "error") {
+								rest.fileIds += (rest.fileIds == "" ? "" : ",") + data.id;
+								result.fileUrls += (result.fileIds == "" ? "" : "," + options.contextPath + "/file/") + data.id;
+							}
+						},
+						error : function() {
+						}
+					});
+				}
+				
+				if (callback && typeof callback === "function")
+					callback(rest);
+				else if (options && typeof options === "function")
+					options(rest);
+			}
+		},
+		
+		/**
+		 * 获取地理位置
+		 */
+		getLocation : function(options, callback) {
+			var _options = $.extend({}, {
+			}, ((options && typeof options !== "function") ? options : {}));
+			
+			var _callback;
+			if (callback && typeof callback === "function") {
+				_callback = callback;
+			} else if (options && typeof options === "function") {
+				_callback = options;
+			}
+			
+			if (typeof wx != "undefined") {
+				wx.ready(function() {
+					wx.getLocation({
+						type: "gcj02",
+						success: function (res) {
+							// res.latitude： 纬度，浮点数，范围为90 ~ -90
+							// res.longitude： 经度，浮点数，范围为180 ~ -180。
+							_callback(res);
+						},
+						fail : function() {
+							getGPS(_callback);
+						}
+					});
+				});
+			} else if (typeof dd != "undefined") {
+				dd.ready(function() {
+					dd.device.geolocation.get({
+						onSuccess : function(result) {
+							_callback(result.location ? result.location : result);
+						},
+						onFail : function(err) {
+							getGPS(_callback);
+						}
+					});
+				});
+			} else if (jdyzjJSAPI.isYzjApp() || jdyzjJSAPI.getCloudHub().isUsable) {// 金蝶云之家
+				var locationApiName = "getLocation";
+				if (navigator.userAgent.indexOf("projectCode:") != -1 && navigator.userAgent.indexOf("xtUrl:") != -1) {// 私有云
+					locationApiName = "getCurrentPosition";
+				}
+				
+				XuntongJSBridge.call(locationApiName, {}, function(result) {
+					var success = String(result.success);
+					if (success == "true") {
+						_callback(result.data);
+					} else {
+						getGPS(_callback);
+					}
+				});
+			} else {
+				getGPS(_callback);
+			}
+			
+			function getGPS(callback) {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(
+						function(position) {
+							if (callback) {
+								callback(gpsToGcj.geoTransform(position.coords.latitude, position.coords.longitude));
+							}
+						},
+						function(error) {
+							switch (error.code) {
+							case 1:
+								alert("位置服务被拒绝");
+								break;
+							case 2:
+								handleH5ForIOS10(callback);
+								break;
+							case 3:
+								alert("获取信息超时");
+								break;
+							case 4:
+								alert("未知错误");
+								break;
+							default:
+								alert(JSON.stringify(error));
+								break;
+							}
+						}
+					);
+				} else {
+					alert("您的客户端不支持获取定位信息，请升级或联系管理员");
+				}
+			}
+			
+			function handleH5ForIOS10(callback) {
+				var geolocation = new qq.maps.Geolocation("I44BZ-QZCKW-N6QRI-R5I4U-7COW5-DJBWB", "qqkey");
+				geolocation.getLocation(function(position) {
+					callback({"latitude" : position.lat, "longitude" : position.lng});
+				}, function() {
+					alert("暂时获取不到位置信息！");
+				}, {timeout: 8000});
+			}
+		},
+		
+		/**
+		 * 上传文件到OA
+		 */
+		uploadWorkFlowFile : function(options, callback) {
+			var _options = $.extend({}, {
+				contextPath : "", // 上下文路径
+				workflowid : "", // 流程ID
+				fileIds : {} // 云桥文件ID列表，格式如下：{ "附件字段唯一标识" : "云桥文件ID列表" }，例如：{ "1" : "1,2" , "2" : "3" }，对应返回结果是：{ "附件字段唯一标识" : "OA文件ID列表" }，例如：{ "1" : "10,20" , "2" : "30" }
+			}, ((options && typeof options !== "function") ? options : {}));
+			
+			var uploadfields = "";
+			var params = "";
+			for (var fieldId in _options.fileIds) {
+				uploadfields += "," + fieldId;
+				params += "&filephoto" + fieldId + "=" + _options.fileIds[fieldId];
+			}
+			if (uploadfields.length > 0) {
+				uploadfields = uploadfields.substring(1);
+			}
+			
+			$.ajax({
+				url : _options.contextPath + "/wxapi/ecfileupload?workflowid=" + _options.workflowid + "&uploadfields=" + uploadfields + params,
+				type : "post",
+				dataType : "json",
+				success : function(data) {
+					if (data.status == 1) {
+						var result = {};
+						var values = data.docvaluelist;
+						if (values != null && typeof (values) != "undefined") {
+							for (var i = 0; i < values.length; i++) {
+								var fieldid = values[i].fieldid;
+								var docids = values[i].docids;
+								if (docids != "") {
+									result[fieldid] = docids;
+								}
+							}
+						}
+						
+						if (callback && typeof callback === "function") {
+							callback(result);
+						}
+					} else {
+						alert("附件文件上传失败！");
+					}
+				},
+				error : function() {
+					alert("网络异常，请联系管理员！");
+				}
+			});
+		},
+		
+		/**
+		 * 企业微信预览附件
+		 */
+		previewFile : function(options) {
+			var _options = $.extend({}, {
+				contextPath : typeof _contextPath != "undefined" ? _contextPath : (typeof wxcontextpath != "undefined" ? wxcontextpath : ""), // 上下文路径
+				fileid : "", // 文件ID
+				filename : "" // 文件名
+			}, ((options && typeof options !== "function") ? options : {}));
+			
+			$.ajax({
+				url : _options.contextPath + "/mobile/plugin/plus/fileupload/getFileSize.jsp",
+				type : "post",
+				data : {
+					"operation" : "getFileSize",
+					"fileid" : _options.fileid
+				},
+				dataType : "json",
+				success : function(data) {
+					if (data.status == 1) {
+						alert(data.msg);
+						return;
+					}
+					
+					var size = data.fileSize;
+					var fname = _options.filename ? _options.filename : data.imagefilename;
+					
+					$.ajax({
+						url : _options.contextPath + "/wxclient/app/outsys/getFileDownloadUrl",
+						type : "post",
+						data : {
+							"fileid" : _options.fileid
+						},
+						dataType : "json",
+						success : function(data) {
+							if (data.status == "error") {
+								alert(data.msg);
+								return;
+							}
+							
+							var url = data.downloadurl;
+							if (typeof _weworkfilepreviewcache != "undefined" && _weworkfilepreviewcache != "1") {
+								url += "&r=" + Math.random();
+							}
+							
+							var outurl = typeof _outurl != "undefined" ? _outurl : window.location.protocol + "//" + window.location.host;
+							
+							if (typeof _weworkwatermark != "undefined" && _weworkwatermark == 1) {
+								wx.invoke("showWatermark", {}, function(res) {
+									wx.previewFile({
+										url: outurl + url, // 需要预览文件的地址(必填，可以使用相对路径)
+										name: fname, // 需要预览文件的文件名(不填的话取url的最后部分)
+										size: size // 需要预览文件的字节大小(必填)
+									});
+								});
+							} else {
+								wx.previewFile({
+									url: outurl + url, // 需要预览文件的地址(必填，可以使用相对路径)
+									name: fname, // 需要预览文件的文件名(不填的话取url的最后部分)
+									size: size // 需要预览文件的字节大小(必填)
+								});
+							}
+						},
+						error : function() {
+							alert("获取文件下载路径网络异常");
+						}
+					});
+				},
+				error : function() {
+					alert("获取文件大小网络异常");
+				}
+			});
+		}
+	}
+})(jQuery);
