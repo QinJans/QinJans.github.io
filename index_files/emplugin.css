@@ -1,0 +1,88 @@
+﻿#view_header table,#page #header table,#view_header table{
+	table-layout: fixed;
+}
+
+#view_header table td,#view_header table td div,#page #header table td,#page #header table td div,#view_header table td,#view_header table td div{
+	word-break: keep-all;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#view_header a div,#page #header a div,#view_header a div{
+	background: none !important;
+	color: #fff !important;
+}
+.embackbtn{
+	width: 16px;
+	height: 16px;
+	border: 0px;
+	margin-top: 5px;
+	margin-left: 5px;
+	float: left;
+}
+.emclosebtn{
+	width: 16px;
+	height: 16px;
+	border: 0px;
+	margin-top: 5px;
+	margin-right: 5px;
+	float: right;
+}
+.emaddbtn{
+	font-size: 30px;
+	float: right;
+	margin-right: 5px;
+}
+.emopbtn{
+	float: right;
+	margin-right: 5px;
+}
+*{
+	word-break: break-all !important;
+}
+
+/* .operationBt {
+	height: 26px;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	line-height: 26px;
+	font-size: 14px;
+	padding-left: 10px;
+	padding-right: 10px;
+	color: #fff;
+	text-align: center;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
+	border-radius: 0px;
+	border: 1px solid #0080FF;
+	background: #0080FF;
+	background: -moz-linear-gradient(0, #0080FF, #0080FF);
+	background: -webkit-gradient(linear, 0 0, 0 0, from(#0080FF), to(#0080FF) );
+	overflow: hidden;
+	display: inline-block;
+	font-family: '微软雅黑';
+}
+.blockHead {
+	font-family: '微软雅黑';
+	width: 100%;
+	height: 32px;
+	line-height: 32px;
+	font-size: 14px;
+	font-weight: bold;
+	color: #fff;
+	border-top: 1px solid #0080FF;
+	border-left: 1px solid #0080FF;
+	border-right: 1px solid #0080FF;
+	-moz-border-top-left-radius: 0px;
+	-moz-border-top-right-radius: 0px;
+	-webkit-border-top-left-radius: 0px;
+	-webkit-border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
+	border-top-left-radius: 0px;
+	background: #47A9DD;
+	background: -moz-linear-gradient(0, #0080FF, #0080FF);
+	background: -webkit-gradient(linear, 0 0, 0 100%, from(#0080FF), to(#0080FF) );
+} */

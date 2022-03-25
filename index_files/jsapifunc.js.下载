@@ -1,0 +1,246 @@
+//发起钉钉聊天
+function doDingM(){
+	var _users = makeUsers();
+	var _title = "发起聊天会离开当前页面，确定发起聊天？";
+	if(_users.length==0){
+		ddalert("请选择聊天人员！");
+		return;
+	}
+	else if(_users.length>1){
+		_title = "确定创建群聊？";
+		dd.device.notification.confirm({
+		    message: "",
+		    title: _title,
+		    buttonLabels: ['确认', '取消'],
+		    onSuccess : function(result) {
+		    	if(result.buttonIndex==0){
+		    		exeDingM(_users,dd_corpId);
+		    	}
+		    },
+		    onFail : function(err) {}
+		});
+	}else{
+		exeDingM(_users,dd_corpId);
+	}
+}
+
+function exeDingM(_users,dd_corpId){
+	dd.biz.util.open({
+	    name: 'chat',
+	    params: {
+	    	users: _users,//用户列表,工号
+	    	corpId: dd_corpId//企业id
+	    },
+	    onSuccess : function(result) {
+	    	//alert(result);
+	    },
+	    onFail : function(err) {
+	    	if(err.errorCode==2){
+	    		ddalert("不能向自己或不在钉钉通讯录中的人发起聊天！");
+	    	}else{
+	    		ddalert(err.errorMessage);
+	    	}
+	    }
+	})
+}
+
+//发起钉钉钉消息
+var _linkurl = "";
+function doDingD(){
+	var _users = makeUsers();
+	if(_users.length==0){
+		ddalert("请选择人员！");
+		return;
+	}
+	//调用方法生成消息链接
+	if(_linkurl==""){
+		try{
+			if(typeof _sysagentorappid != "undefined" && _sysagentorappid!=""){
+				jQuery.ajax({
+					url : wxcontextpath+"/main/sendmsglog/save",
+					type : "post",
+					data : {"sysagentorappid":_sysagentorappid,"linkaddr":"/mobile/plugin/1/view.jsp?detailid="+_requestid,"type":"1","outsysid":_outsysid,"msgdataid":_requestid},
+					dataType : "json",
+					success : function(data) {
+						if(data.status == "success"){
+							_linkurl = JSON.parse(data.result).msglink;
+						}
+						exeDingD(_users,_linkurl);
+					},
+					error: function(a,b,c){
+						exeDingD(_users,_linkurl);
+					}
+				});
+			}else{
+				exeDingD(_users,_linkurl);
+			}
+		}catch(e){
+			exeDingD(_users,_linkurl);
+		}
+	}else{
+		exeDingD(_users,_linkurl);
+	}
+}
+function exeDingD(_users,_linkurl){
+	var _image = "";
+	if(_linkurl!=""){
+		_image = _outurl + '/main/assets/images/link.png';
+	}
+	var _text = "";
+	if(_requestname!=""){
+		_text = "点击查看流程："+_requestname;
+	}
+	if (typeof DingTalkPC != "undefined") {
+		_linkurl = "dingtalk://dingtalkclient/page/link?pc_slide=true&url=" + encodeURIComponent(_linkurl);
+	}
+	ddobj.biz.ding.post({
+	    users : _users,//用户列表，工号
+	    corpId: dd_corpId, //加密的企业id
+	    type: 2, //钉类型 1：image  2：link
+	    alertType: 2,
+	    //alertDate: {"format":"yyyy-MM-dd HH:mm","value":"2015-05-09 08:00"},
+	    attachment: {
+	        //images: [''], //只取第一个image
+	        
+	        title: _requestname,
+	        url: _linkurl,
+	        image: _image,
+	        text: _text
+
+	    }, //附件信息
+	    text: "", //消息体
+	    onSuccess : function() {},
+	    onFail : function(err) {}
+	})
+}
+//发起钉钉免费电话
+function doDingC(){
+	var _users = makeUsers();
+	if(_users.length==0){
+		ddalert("请选择人员！");
+		return;
+	}
+	
+	dd.biz.telephone.call({
+	    users: _users, //用户列表，工号
+	    corpId: dd_corpId, //企业id
+	    onSuccess : function() {},
+	    onFail : function(err) {ddalert("人员不在钉钉通讯录中无法拨打免费电话！");}
+	})
+	
+	/*dd.device.notification.confirm({
+	    message: "",
+	    title: "确定拨打免费电话？",
+	    buttonLabels: ['确认', '取消'],
+	    onSuccess : function(result) {
+	        
+	        {
+	            buttonIndex: 0 //被点击按钮的索引值，Number类型，从0开始
+	        }
+	        
+	    	//alert(result.buttonIndex);
+	    	if(result.buttonIndex==0){
+	    		dd.biz.telephone.call({
+	    		    users: _users, //用户列表，工号
+	    		    corpId: dd_corpId, //企业id
+	    		    onSuccess : function() {},
+	    		    onFail : function(err) {ddalert("人员不在钉钉通讯录中无法拨打免费电话！");}
+	    		})
+	    	}
+	    },
+	    onFail : function(err) {}
+	});*/
+}
+
+//发起钉钉聊天
+function doWXM(){
+	var _users = makeUsers2();
+	if(_users==""){
+		ddalert("请选择聊天人员！");
+		return;
+	}
+	if(_users.indexOf(";")>-1 || _users!=""){
+		if(confirm("发起聊天会离开当前页面，确定创建群聊？")){
+			exeWXM(_users);
+		}
+	}else{
+		exeWXM(_users);
+	}
+	
+	/*if(_users.indexOf(";")>-1){
+		if(confirm("发起群聊会离开当前页面，确定创建群聊并进入聊天界面？")){
+			exeWXM(_users);
+		}
+	}else{
+		exeWXM(_users);
+	}*/
+}
+function ddalert(msg){
+	try{
+		ddobj.device.notification.alert({
+		    message: msg,
+		    title: "",//可传空
+		    buttonName: "确定",
+		    onSuccess : function() {
+		        /*回调*/
+		    },
+		    onFail : function(err) {}
+		});
+		
+	}catch(e){
+		alert(msg);
+	}
+}
+function exeWXM(_users){
+	try{
+		wx.openEnterpriseChat({
+			userIds: _users, //dky;zhw;zh;xqy
+			groupName: _requestname,
+			success: function(res){
+				// 回调
+				
+				//for(var key in res){  
+		            //  alert(key);  
+		       // }
+			},
+		    fail: function(res){
+		    	try{
+		    		var errcode = res.errCode;
+			    	var errmsg = res.errMsg;
+			    	if(errmsg.indexOf('function not exist') > 0){
+			    		errmsg = "您的微信版本过低请升级后使用此功能！";
+					}else if(errcode==10001){
+						errmsg = "appid无效";
+					}else if(errcode==10002){
+						errmsg = "用户未关注企业号";
+					}else if(errcode==10003){
+						errmsg = "请联系管理员通过腾讯企业号后台开启消息服务";
+					}else if(errcode==10004){
+						errmsg = "用户不在消息服务可见范围，可联系管理员进行修改";
+					}else if(errcode==10005){
+						errmsg = "人员不在企业号通讯录中，无法发起会话";
+					}else if(errcode==10006){
+						errmsg = "消息会话成员数不合法，最大数量为1000";
+					}else if(errcode==-1){
+						errmsg = "微信服务出错，请重试";
+					}else{
+						errmsg = "";
+						WeixinJSBridge.invoke("openEnterpriseChat", {
+							userIds: _users, //dky;zhw;zh;xqy
+							groupName: _requestname
+					    },function(res2){
+					    	alert(res2.err_msg);
+					    });
+					}
+			    	if(errmsg!=""){
+			    		alert(errmsg);
+			    	}
+		    	}catch(e){
+		    		alert("创建会话失败："+e);
+		    	}
+			}
+		});
+	}catch(e){
+		alert("发送消息失败："+e);
+	}
+}

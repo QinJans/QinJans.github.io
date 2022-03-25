@@ -1,0 +1,114 @@
+jQuery(document).ready(function(){
+	try{
+		//wxcontextpath = jQuery("#wxcontextpath").val();
+		if(wxcontextpath==null || typeof(wxcontextpath)=="undefined") wxcontextpath = "";
+		jQuery("#view_header,#header").find("a").each(function(){
+			var btn = jQuery(this).children("div:first");
+			var txt = jQuery.trim(btn.html());
+			if(txt=="返回" || txt == "response" || txt=="邮件" || txt=="取消"){
+				if(typeof(_wxnoback)!="undefined" && _wxnoback!=null && _wxnoback==1){
+					btn.html("");
+				}else{
+					btn.html("<img class=\"embackbtn\" src=\""+wxcontextpath+"/main/assets/img/back.png\" />");
+				}
+			}else if(txt=="退出" || txt == "Quit"){
+				if(typeof(_wxcptype)!="undefined" && _wxcptype!=null && (_wxcptype==1||_wxcptype==2)){
+					//btn.html("<img class=\"emclosebtn\" src=\""+wxcontextpath+"/main/assets/img/close.png\" />");
+					btn.html("");
+				}else{//非企业号及钉钉屏蔽关闭功能
+					btn.html("");
+				}
+			}else if(txt=="新建"){
+				btn.css("width","auto").html("<span class=\"emaddbtn\" >&#43;</span>");
+			}else if(txt=="内部" || txt=="外部"){
+				btn.css("width","auto").html(txt);
+				btn.parent().parent("td").css("padding-right",0);
+			}else if(txt!="表单" && txt!="流程图" && txt!="状态"){
+				btn.html("<span class=\"emopbtn\" >"+txt+"</span>");
+			}
+		});
+		
+		//正式系统客户模块
+		if(jQuery.trim(jQuery("#title").html())=="客户"){
+			jQuery("#header").find("div").each(function(){
+				var btn = jQuery(this);
+				var txt = jQuery.trim(btn.html());
+				if(btn.attr("id")!="title"){
+					if(txt=="返回" || txt=="取消"){
+						btn.css("background","none").html("<img class=\"embackbtn\" src=\""+wxcontextpath+"/main/assets/img/back.png\" />");
+					}else if(txt=="退出"){
+						btn.css("background","none").html("<img class=\"emclosebtn\" src=\""+wxcontextpath+"/main/assets/img/close.png\" />");
+					}else if(txt=="搜索"){
+						btn.css("background","none").html("");
+					}
+				}
+			});
+		}
+		
+		//日程页面增加新建功能
+		if(location.href.indexOf("/mobile/plugin/4/select.jsp")>-1){
+			var addstr = "<a href=\"javascript:wxCreateWorkplan();\" style=\"line-height: 40px; color: #FFF; font-size: 30px;float: right;margin-right:10px;font-weight:bold;\">&#43;</a>";
+			jQuery("#view_header").append(addstr);
+		}
+		//会议页面增加新建功能
+		else if(location.href.indexOf("/mobile/plugin/5/select.jsp")>-1){
+			var addstr = "<a href=\"javascript:wxCreateMeeting();\" style=\"line-height: 40px; color: #FFF; font-size: 30px;float: right;margin-right:10px;\">&#43;</a>";
+			jQuery("#view_header").append(addstr);
+		}
+		
+		//设置图片宽度
+		/*$("img").load(function(){
+			setImgSize($(this));
+		});*/
+		setInterval(setImgSize,"1000");
+		
+		
+		/*try{
+			jQuery(".wxPreviewImage").unbind("click").live("click", function() {
+				
+				var urls = [];
+				$(".wxPreviewImage").each(function() {
+					urls.push(this.src);
+				});
+				if (typeof wx != "undefined") {
+					wx.previewImage({
+						current: this.src, // 当前显示的图片链接
+						urls: urls // 需要预览的图片链接列表
+					});
+				} else if (typeof dd != "undefined") {
+					dd.biz.util.previewImage({
+						urls: urls, // 图片地址列表
+						current: this.src, // 当前显示的图片链接
+						onSuccess : function(result) {
+						},
+						onFail : function() {}
+					});
+				}
+			});
+		}catch(e){
+			
+		}*/
+		
+		
+	}catch(e){}
+	
+	
+});
+//设置图片宽度
+function setImgSize(){
+	var innerWidth = $(window).width();//window.innerWidth;
+	$("img:not(.pswp__img)").each(function(){
+		var imgWidth = $(this).width();
+		if (imgWidth > innerWidth) {
+			$(this).width("100%").height("auto");//.addClass("wxPreviewImage")
+		}	
+	});
+}
+//新建日程
+function wxCreateWorkplan(){
+	window.location = wxcontextpath+"/wxclient/app/maw/workplan";
+}
+//新建会议
+function wxCreateMeeting(){
+	window.location = wxcontextpath+"/wxclient/app/maw/meeting";
+}
